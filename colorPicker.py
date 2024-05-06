@@ -1,4 +1,5 @@
-from PyQt6.QtWidgets import QWidget,QApplication,QSlider,QLabel,QHBoxLayout,QVBoxLayout
+from PyQt6.QtWidgets import QWidget,QApplication,QSlider,QLabel,QHBoxLayout,QVBoxLayout,QColorDialog
+from PyQt6.QtGui import QColor
 from PyQt6.QtCore import Qt
 import sys
 
@@ -48,19 +49,60 @@ class MainWindow(QWidget):
     
     layout.addLayout(sliders_layout)
 
+    # Create a label for color preview
+    self.color_preview = QLabel()
+
+    color_layout = QVBoxLayout()
+    color_layout.addWidget(self.color_preview)
+    color_layout.addStretch()
+    layout.addLayout(color_layout)
+
     # Connect sliders to a method
     self.red_slider.valueChanged.connect(self.update_color)
     self.green_slider.valueChanged.connect(self.update_color)
     self.blue_slider.valueChanged.connect(self.update_color)
+
+    # Set color initial value
+    self.color = "#fff"
+    self.color_preview.setStyleSheet(f"background-color: {self.color}")
+    self.color_preview.mousePressEvent = self.show_color_dialog
+
+    self.final_color_label = QLabel("Final color: #ffffff")
+    final_color_layout = QHBoxLayout()
+    final_color_layout.addWidget(self.final_color_label)
+    layout.addLayout(final_color_layout)
+
+  
 
   def update_color(self):
     red = self.red_slider.value()
     green = self.green_slider.value()
     blue = self.blue_slider.value()
 
+    self.color = QColor(red,green,blue)
+    self.color_preview.setStyleSheet(f"background-color: {self.color.name()}")
+
+    # Update value labels
     self.red_value_label.setText(str(red))
     self.green_value_label.setText(str(green))
     self.blue_value_label.setText(str(blue))
+
+    self.final_color_label.setText(f"Final color:  {self.color.name()}")
+  
+  def show_color_dialog(self,event):
+    if event.button() == Qt.MouseButton.LeftButton:
+      color_dialog = QColorDialog(self.color,self)
+
+      color_dialog.colorSelected.connect(self.set_color) 
+      color_dialog.exec()
+
+  def set_color(self, color):
+    self.color = color
+    self.red_slider.setValue(color.red())
+    self.green_slider.setValue(color.green())
+    self.blue_slider.setValue(color.blue())
+    self.update_color()
+      
 
 
 
